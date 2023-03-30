@@ -2256,14 +2256,14 @@ sqlcipher = ["sqlcipher3-binary"]
 
 [[package]]
 name = "statsd"
-version = "3.3.0"
+version = "4.0.1"
 description = "A simple statsd client."
 category = "main"
 optional = false
 python-versions = "*"
 files = [
-    {file = "statsd-3.3.0-py2.py3-none-any.whl", hash = "sha256:c610fb80347fca0ef62666d241bce64184bd7cc1efe582f9690e045c25535eaa"},
-    {file = "statsd-3.3.0.tar.gz", hash = "sha256:e3e6db4c246f7c59003e51c9720a51a7f39a396541cb9b147ff4b14d15b5dd1f"},
+    {file = "statsd-4.0.1-py2.py3-none-any.whl", hash = "sha256:c2676519927f7afade3723aca9ca8ea986ef5b059556a980a867721ca69df093"},
+    {file = "statsd-4.0.1.tar.gz", hash = "sha256:99763da81bfea8daf6b3d22d11aaccb01a8d0f52ea521daab37e758a4ca7d128"},
 ]
 
 [[package]]
@@ -2440,4 +2440,4 @@ fakeredis = ["fakeredis"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~=3.10"
-content-hash = "757ced0fcd8ad173945a5205f57d8807f1fc2ff59b949b432f9edfd772bf3f65"
+content-hash = "77ce6f92c9c004e34d72ebd54f6204641727dc361413edaf2bf918b4c3caa195"
