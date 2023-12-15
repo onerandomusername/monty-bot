@@ -7,6 +7,7 @@ from urllib.parse import urldefrag
 import disnake
 from disnake.ext import commands, tasks
 
+from monty.constants import Feature
 from monty.log import get_logger
 from monty.utils.features import require_feature
 from monty.utils.helpers import encode_github_link
@@ -42,13 +43,17 @@ class GlobalSource(commands.Cog, name="Global Source"):
             return snekbox
         raise RuntimeError("Snekbox is not loaded")
 
-    @require_feature("GLOBAL_SOURCE_COMMAND")
+    @require_feature(Feature.GLOBAL_SOURCE)
     @commands.command(name="globalsource", aliases=("gs",), hidden=True)
     async def globalsource(self, ctx: commands.Context, object: str) -> None:
         """Get the source of a python object."""
         object = object.strip("`")
         async with ctx.typing():
-            result = await self.snekbox.post_eval(self.code.replace("REPLACE_THIS_STRING_WITH_THE_OBJECT_NAME", object))
+            result = await self.snekbox.post_eval(
+                self.code.replace("REPLACE_THIS_STRING_WITH_THE_OBJECT_NAME", object),
+                # for `-X frozen_modules=off`, see https://github.com/python/cpython/issues/89183
+                args=["-X", "frozen_modules=off", "-c"],
+            )
 
         # exit codes:
         # 0: success

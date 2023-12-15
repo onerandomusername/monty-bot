@@ -10,6 +10,7 @@ if TYPE_CHECKING:
 __all__ = (
     "Client",
     "Colours",
+    "DiscordFeatures",
     "Emojis",
     "Icons",
     "Stats",
@@ -32,6 +33,8 @@ class Client:
     default_command_prefix = environ.get("PREFIX", "-")
     token = environ.get("BOT_TOKEN")
     debug = environ.get("BOT_DEBUG", "true").lower() == "true"
+    debug_logging = environ.get("LOG_DEBUG", "true").lower() == "true"
+    sentry_enabled = bool(environ.get("SENTRY_DSN"))
     github_bot_repo = "https://github.com/onerandomusername/monty-python"
     trace_loggers = environ.get("BOT_TRACE_LOGGERS")
     log_mode: Literal["daily", "dev"] = "daily" if "daily" == environ.get("BOT_LOG_MODE", "dev").lower() else "dev"
@@ -104,17 +107,23 @@ class Colours:
     gold = 0xE6C200
 
 
+class DiscordFeatures:
+    """Whether to embrace or ignore new features on Discord, in case they get rolled back."""
+
+    extended_markdown = True
+
+
 class Emojis:
-    cross_mark = "\u274C"
-    star = "\u2B50"
-    christmas_tree = "\U0001F384"
+    cross_mark = "\u274c"
+    star = "\u2b50"
+    christmas_tree = "\U0001f384"
     check = "\u2611"
-    envelope = "\U0001F4E8"
+    envelope = "\U0001f4e8"
     trashcan = environ.get("TRASHCAN_EMOJI", "<:trashcan:637136429717389331>")
     trashcan_on_red = environ.get("TRASHCAN_ON_RED_EMOJI", "<:trashcan:976669056587415592>")
     trashcat_special = environ.get("TRASHCAT_SPECIAL_EMOJI", "<:catborked:976598820651679794>")
     ok_hand = ":ok_hand:"
-    hand_raised = "\U0001F64B"
+    hand_raised = "\U0001f64b"
     black = "<:black_format:928530654143066143>"
     upload = "\U0001f4dd"
     snekbox = "\U0001f40d"
@@ -161,6 +170,21 @@ class Endpoints:
     app_info = environ.get("APPLICATION_INFO_ENDPOINT")
     pypi_simple = "https://pypi.org/simple/"
     top_pypi_packages = environ.get("PYPI_TOP_PACKAGES", "")
+
+
+class Feature:
+    CODEBLOCK_RECOMMENDATIONS = "PYTHON_CODEBLOCK_RECOMMENDATIONS"
+    DISCORD_TOKEN_REMOVER = "DISCORD_BOT_TOKEN_FILTER"  # noqa: S105
+    DISCORD_WEBHOOK_REMOVER = "DISCORD_WEBHOOK_FILTER"
+    GITHUB_COMMENT_LINKS = "GITHUB_EXPAND_COMMENT_LINKS"
+    GITHUB_DISCUSSIONS = "GITHUB_AUTOLINK_DISCUSSIONS"
+    GITHUB_ISSUE_EXPAND = "GITHUB_AUTOLINK_ISSUE_SHOW_DESCRIPTION"
+    GITHUB_ISSUE_LINKS = "GITHUB_EXPAND_ISSUE_LINKS"
+    GLOBAL_SOURCE = "GLOBAL_SOURCE_COMMAND"
+    INLINE_DOCS = "INLINE_DOCUMENTATION"
+    PYPI_AUTOCOMPLETE = "PYPI_PACKAGE_AUTOCOMPLETE"
+    PYTHON_DISCOURSE_AUTOLINK = "PYTHON_DISCOURSE_AUTOLINK"
+    SOURCE_AUTOCOMPLETE = "META_SOURCE_COMMAND_AUTOCOMPLETE"
 
 
 class Guilds:

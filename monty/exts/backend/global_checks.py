@@ -50,12 +50,12 @@ class GlobalCheck(commands.Cog, slash_command_attrs={"dm_permission": False}):
         invite = self._bot_invite_link.format(guild_id=inter.guild_id)
         if inter.permissions.manage_guild:
             msg = (
-                f"The bot scope is required to perform any actions. "
+                "The bot scope is required to perform any actions. "
                 f"You can invite the full bot by [clicking here](<{invite}>)."
             )
         else:
             msg = (
-                f"The bot scope is required to perform any actions. "
+                "The bot scope is required to perform any actions. "
                 f"Please ask a server manager to [invite the full bot](<{invite}>)."
             )
         raise BotAccountRequired(msg)

@@ -6,6 +6,7 @@ These help ensure consistency between errors, as they will all be consistent bet
 Note: these are to used for general success or general errors. Typically, the error handler will make a
 response if a command raises a disnake.ext.commands.CommandError exception.
 """
+
 import random
 from typing import Any, List, Literal
 

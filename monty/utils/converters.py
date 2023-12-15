@@ -294,7 +294,7 @@ def _is_an_unambiguous_user_argument(argument: str) -> bool:
 
 
 AMBIGUOUS_ARGUMENT_MSG = (
-    "`{argument}` is not a User mention, a User ID or a Username in the format" " `name#discriminator`."
+    "`{argument}` is not a User mention, a User ID or a Username in the format `name#discriminator`."
 )
 
 

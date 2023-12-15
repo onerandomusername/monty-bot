@@ -249,7 +249,7 @@ class PythonEnhancementProposals(commands.Cog, name="PEPs", slash_command_attrs=
             for title, pep in self.autocomplete.items():
                 if pep in interesting_peps:
                     resp[title] = pep
-            return {x: y for x, y in sorted(resp.items(), key=lambda x: int(x[1]))}
+            return dict(sorted(resp.items(), key=lambda x: int(x[1])))
 
         peps: dict[str, int] = {}
 

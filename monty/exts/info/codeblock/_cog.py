@@ -21,7 +21,6 @@ log = get_logger(__name__)
 
 GuildMessageable = Union[disnake.TextChannel, disnake.Thread, disnake.VoiceChannel]
 
-CODEBLOCK_FEATURE_NAME = "PYTHON_CODEBLOCK_RECOMMENDATIONS"
 
 # seconds until the delete button is shown
 DELETE_PAUSE = 7
@@ -117,7 +116,9 @@ class CodeBlockCog(
         log.trace(f"Checking if #{channel} qualifies for code block detection.")
         if isinstance(channel, disnake.DMChannel):
             return False
-        res = channel.guild and await self.bot.guild_has_feature(channel.guild, CODEBLOCK_FEATURE_NAME)
+        res = channel.guild and await self.bot.guild_has_feature(
+            channel.guild, constants.Feature.CODEBLOCK_RECOMMENDATIONS
+        )
         return res
 
     async def send_instructions(self, message: disnake.Message, instructions: str) -> None:

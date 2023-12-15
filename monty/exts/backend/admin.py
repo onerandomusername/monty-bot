@@ -6,6 +6,7 @@ This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """  # noqa: D415
+
 from __future__ import annotations
 
 import ast
@@ -405,7 +406,7 @@ class Admin(
             count = self.bot.socket_events.get(event.upper(), 0)
             events_and_count[event] = count
 
-        events_and_count = {k: v for k, v in sorted(events_and_count.items(), key=lambda x: x[1], reverse=True)}
+        events_and_count = dict(sorted(events_and_count.items(), key=lambda x: x[1], reverse=True))
         embed.description += "\n"
         for event, count in events_and_count.items():
             embed.description += f"`{event:<{longest_length+1}}`: `{count:>4,}`\n"

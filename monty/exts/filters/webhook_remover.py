@@ -4,6 +4,7 @@ import disnake
 from disnake.ext import commands
 
 from monty.bot import Monty
+from monty.constants import Feature
 from monty.log import get_logger
 
 
@@ -18,7 +19,6 @@ ALERT_MESSAGE_TEMPLATE = (
     "mistake, please let us know."
 )
 
-WEBHOOK_REMOVER_FEATURE_NAME = "DISCORD_WEBHOOK_FILTER"
 
 log = get_logger(__name__)
 
@@ -63,7 +63,7 @@ class WebhookRemover(commands.Cog, name="Webhook Remover", slash_command_attrs={
         # Ignore DMs; can't delete messages in there anyway.
         if not msg.guild or msg.author.bot:
             return
-        if not await self.bot.guild_has_feature(msg.guild, WEBHOOK_REMOVER_FEATURE_NAME):
+        if not await self.bot.guild_has_feature(msg.guild, Feature.DISCORD_WEBHOOK_REMOVER):
             return
 
         matches = WEBHOOK_URL_RE.search(msg.content)

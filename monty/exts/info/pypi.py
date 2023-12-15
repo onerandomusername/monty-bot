@@ -18,7 +18,7 @@ from cachingutils import LRUMemoryCache, async_cached
 from disnake.ext import commands, tasks
 
 from monty.bot import Monty
-from monty.constants import NEGATIVE_REPLIES, Colours, Endpoints
+from monty.constants import NEGATIVE_REPLIES, Colours, Endpoints, Feature
 from monty.log import get_logger
 from monty.utils.caching import redis_cache
 from monty.utils.helpers import maybe_defer
@@ -42,7 +42,6 @@ MAX_CACHE = 15
 ILLEGAL_CHARACTERS = re.compile(r"[^-_.a-zA-Z0-9]+")
 MAX_RESULTS = 15
 
-PYPI_AUTOCOMPLETE_FEATURE_NAME = "PYPI_PACKAGE_AUTOCOMPLETE"
 log = get_logger(__name__)
 
 PYPI_API_HEADERS = {"Accept": "application/vnd.pypi.simple.v1+json"}
@@ -79,9 +78,9 @@ class PyPI(commands.Cog, slash_command_attrs={"dm_permission": False}):
     async def cog_load(self) -> None:
         """Load the package list on cog load."""
         # create the feature if it doesn't exist
-        await self.bot.guild_has_feature(None, PYPI_AUTOCOMPLETE_FEATURE_NAME)
+        await self.bot.guild_has_feature(None, Feature.PYPI_AUTOCOMPLETE)
 
-        if self.bot.features[PYPI_AUTOCOMPLETE_FEATURE_NAME].enabled is not False:
+        if self.bot.features[Feature.PYPI_AUTOCOMPLETE].enabled is not False:
             # start the task
             self.fetch_package_list.start(use_cache=False)
             # pre-fill the autocomplete once
@@ -381,7 +380,7 @@ class PyPI(commands.Cog, slash_command_attrs={"dm_permission": False}):
             # we need to shortcircuit and skip the fuzzing results
             return list(random.sample(the_sample, k=min(25, len(the_sample))))
 
-        if await self.bot.guild_has_feature(inter.guild_id, PYPI_AUTOCOMPLETE_FEATURE_NAME):
+        if await self.bot.guild_has_feature(inter.guild_id, Feature.PYPI_AUTOCOMPLETE):
             package_list = self.all_packages
         else:
             package_list = self.top_packages

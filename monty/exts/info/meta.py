@@ -6,7 +6,7 @@ from typing import Optional
 import disnake
 import psutil
 from disnake.ext import commands
-from disnake.ext.commands import Range
+from disnake.ext.commands import LargeInt, Range
 
 from monty.bot import Monty
 from monty.constants import Client, Colours
@@ -132,7 +132,7 @@ class Meta(commands.Cog, slash_command_attrs={"dm_permission": False}):
         self,
         inter: disnake.CommandInteraction,
         permissions: Range[0, disnake.Permissions.all().value] = None,
-        guild: str = None,
+        guild_id: LargeInt = None,
         raw_link: bool = False,
         ephemeral: bool = None,
     ) -> None:
@@ -142,7 +142,7 @@ class Meta(commands.Cog, slash_command_attrs={"dm_permission": False}):
         Parameters
         ----------
         permissions: The permissions to grant the invite link.
-        guild: The guild to invite the bot to.
+        guild_id: The guild to invite the bot to.
         raw_link: Whether to return the raw invite link.
         ephemeral: Whether to send the invite link as an ephemeral message.
         """
@@ -160,7 +160,7 @@ class Meta(commands.Cog, slash_command_attrs={"dm_permission": False}):
             inter,
             client_id=self.bot.user.id,
             permissions=permissions,
-            guild=guild,
+            guild_id=guild_id,
             include_applications_commands=True,
             raw_link=raw_link,
             ephemeral=ephemeral,

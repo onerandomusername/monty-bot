@@ -125,9 +125,9 @@ class Colour(commands.Cog, slash_command_attrs={"dm_permission": False}):
     async def slash_rgb(
         self,
         inter: disnake.CommandInteraction,
-        red: commands.Range[0, 255],
-        green: commands.Range[0, 255],
-        blue: commands.Range[0, 255],
+        red: commands.Range[int, 0, 255],
+        green: commands.Range[int, 0, 255],
+        blue: commands.Range[int, 0, 255],
     ) -> None:
         """
         RGB Format.
@@ -146,8 +146,10 @@ class Colour(commands.Cog, slash_command_attrs={"dm_permission": False}):
         """Create an embed from an HSV input."""
         if (hue not in range(361)) or any(c not in range(101) for c in (saturation, value)):
             raise commands.BadArgument(
-                message="Hue can only be from 0 to 360. Saturation and Value can only be from 0 to 100. "
-                f"User input was: `{hue, saturation, value}`."
+                message=(
+                    "Hue can only be from 0 to 360. Saturation and Value can only be from 0 to 100. "
+                    f"User input was: `{hue, saturation, value}`."
+                )
             )
         input_colour = f"hsv({hue}, {saturation}%, {value}%)"
         hsv_tuple = ImageColor.getrgb(input_colour)
@@ -157,9 +159,9 @@ class Colour(commands.Cog, slash_command_attrs={"dm_permission": False}):
     async def slash_hsv(
         self,
         inter: disnake.CommandInteraction,
-        hue: commands.Range[0, 360],
-        sat: commands.Range[0, 360],
-        value: commands.Range[0, 100],
+        hue: commands.Range[int, 0, 360],
+        sat: commands.Range[int, 0, 360],
+        value: commands.Range[int, 0, 100],
     ) -> None:
         """
         HSV Format.
@@ -179,8 +181,10 @@ class Colour(commands.Cog, slash_command_attrs={"dm_permission": False}):
         """Create an embed from an HSL input."""
         if (hue not in range(361)) or any(c not in range(101) for c in (saturation, lightness)):
             raise commands.BadArgument(
-                message="Hue can only be from 0 to 360. Saturation and Lightness can only be from 0 to 100. "
-                f"User input was: `{hue, saturation, lightness}`."
+                message=(
+                    "Hue can only be from 0 to 360. Saturation and Lightness can only be from 0 to 100. "
+                    f"User input was: `{hue, saturation, lightness}`."
+                )
             )
         input_colour = f"hsl({hue}, {saturation}%, {lightness}%)"
         hsl_tuple = ImageColor.getrgb(input_colour)
@@ -190,9 +194,9 @@ class Colour(commands.Cog, slash_command_attrs={"dm_permission": False}):
     async def slash_hsl(
         self,
         inter: disnake.CommandInteraction,
-        hue: commands.Range[0, 360],
-        sat: commands.Range[0, 360],
-        lightness: commands.Range[0, 100],
+        hue: commands.Range[int, 0, 360],
+        sat: commands.Range[int, 0, 360],
+        lightness: commands.Range[int, 0, 100],
     ) -> None:
         """
         HSL Format.
@@ -223,10 +227,10 @@ class Colour(commands.Cog, slash_command_attrs={"dm_permission": False}):
     async def slash_cymk(
         self,
         inter: disnake.CommandInteraction,
-        cyan: commands.Range[0, 100],
-        magenta: commands.Range[0, 100],
-        yellow: commands.Range[0, 100],
-        black: commands.Range[0, 100],
+        cyan: commands.Range[int, 0, 100],
+        magenta: commands.Range[int, 0, 100],
+        yellow: commands.Range[int, 0, 100],
+        black: commands.Range[int, 0, 100],
     ) -> None:
         """
         CMYK Format.
@@ -248,8 +252,10 @@ class Colour(commands.Cog, slash_command_attrs={"dm_permission": False}):
 
         if len(hex_code) not in (4, 5, 7, 9) or any(digit not in string.hexdigits for digit in hex_code[1:]):
             raise commands.BadArgument(
-                message=f"Cannot convert `{hex_code}` to a recognizable Hex format. "
-                "Hex values must be hexadecimal and take the form *#RRGGBB* or *#RGB*."
+                message=(
+                    f"Cannot convert `{hex_code}` to a recognizable Hex format. "
+                    "Hex values must be hexadecimal and take the form *#RRGGBB* or *#RGB*."
+                )
             )
 
         hex_tuple = ImageColor.getrgb(hex_code)

@@ -26,7 +26,7 @@ log = get_logger(__name__)
 
 INLINE_EVAL_REGEX = re.compile(r"\$(?P<fence>`+)(.+)(?P=fence)")
 
-ESCAPE_REGEX = re.compile("[`\u202E\u200B]{3,}")
+ESCAPE_REGEX = re.compile("[`\u202e\u200b]{3,}")
 FORMATTED_CODE_REGEX = re.compile(
     r"(?P<delim>(?P<block>```)|``?)"  # code delimiter: 1-3 backticks; (?P=block) only matches if it's a block
     r"(?(block)(?:(?P<lang>[a-z]+)\n)?)"  # if we're in a block, match optional language (only letters plus newline)
@@ -127,13 +127,11 @@ class Snekbox(commands.Cog, slash_command_attrs={"dm_permission": False}):
 
     @overload
     @staticmethod
-    def prepare_input(code: str, *, require_fenced: bool = False) -> str:
-        ...
+    def prepare_input(code: str, *, require_fenced: bool = False) -> str: ...
 
     @overload
     @staticmethod
-    def prepare_input(code: str, *, require_fenced: bool = True) -> Optional[str]:
-        ...
+    def prepare_input(code: str, *, require_fenced: bool = True) -> Optional[str]: ...
 
     @staticmethod
     def prepare_input(code: str, *, require_fenced: bool = False) -> Optional[str]:
@@ -216,10 +214,10 @@ class Snekbox(commands.Cog, slash_command_attrs={"dm_permission": False}):
         paste_link = None
 
         if "<@" in output:
-            output = output.replace("<@", "<@\u200B")  # Zero-width space
+            output = output.replace("<@", "<@\u200b")  # Zero-width space
 
         if "<!@" in output:
-            output = output.replace("<!@", "<!@\u200B")  # Zero-width space
+            output = output.replace("<!@", "<!@\u200b")  # Zero-width space
 
         if ESCAPE_REGEX.findall(output):
             paste_link = await self.upload_output(original_output) or "too long to upload"
@@ -399,7 +397,7 @@ class Snekbox(commands.Cog, slash_command_attrs={"dm_permission": False}):
         issue with it!
         """
         if ctx.author.id in self.jobs:
-            await ctx.send(f"{ctx.author.mention} You've already got a job running - " "please wait for it to finish!")
+            await ctx.send(f"{ctx.author.mention} You've already got a job running - please wait for it to finish!")
             return
 
         if not code:  # None or empty string

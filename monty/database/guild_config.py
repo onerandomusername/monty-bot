@@ -24,3 +24,4 @@ class GuildConfig(MappedAsDataclass, Base):
     github_issues_org: Mapped[Optional[str]] = mapped_column(sa.String(length=39), nullable=True, default=None)
     git_file_expansions: Mapped[bool] = mapped_column(sa.Boolean, default=True)
     github_issue_linking: Mapped[bool] = mapped_column(sa.Boolean, default=True)
+    github_comment_linking: Mapped[bool] = mapped_column(sa.Boolean, default=True)

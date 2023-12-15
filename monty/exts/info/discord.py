@@ -123,8 +123,8 @@ class Discord(commands.Cog, slash_command_attrs={"dm_permission": False}):
         self,
         inter: disnake.AppCmdInter,
         client_id: LargeInt,
-        permissions: Range[0, disnake.Permissions.all().value] = None,
-        guild: LargeInt = None,
+        permissions: Range[int, 0, disnake.Permissions.all().value] = None,
+        guild_id: LargeInt = None,
         include_applications_commands: bool = True,
         raw_link: bool = False,
         ephemeral: bool = True,
@@ -136,7 +136,7 @@ class Discord(commands.Cog, slash_command_attrs={"dm_permission": False}):
         ----------
         client_id: ID of the user to invite
         permissions: Value of permissions to pre-fill with
-        guild: ID of the guild to pre-fill the invite.
+        guild_id: ID of the guild to pre-fill the invite.
         include_applications_commands: Whether or not to include the applications.commands scope.
         raw_link: Instead of a fancy button, I'll give you the raw link.
         ephemeral: Whether or not to send an ephemeral response.
@@ -160,8 +160,8 @@ class Discord(commands.Cog, slash_command_attrs={"dm_permission": False}):
             # remove the admin perm
             perms.administrator = False
 
-        if guild is not None:
-            guild = disnake.Object(guild)
+        if guild_id is not None:
+            guild = disnake.Object(guild_id)
         else:
             guild = disnake.utils.MISSING
 
@@ -183,13 +183,11 @@ class Discord(commands.Cog, slash_command_attrs={"dm_permission": False}):
             guild=guild,
             scopes=scopes,
         )
-        message = " ".join(
-            [
-                "Click below to invite" if not raw_link else "Click the following link to invite",
-                "me" if client_id == inter.bot.user.id else user.mention,
-                "to the specified guild!" if guild else "to your guild!",
-            ]
-        )
+        message = " ".join([
+            "Click below to invite" if not raw_link else "Click the following link to invite",
+            "me" if client_id == inter.bot.user.id else user.mention,
+            "to the specified guild!" if guild else "to your guild!",
+        ])
 
         components = []
 

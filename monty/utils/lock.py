@@ -84,8 +84,7 @@ def lock(
     *,
     raise_error: Literal[False] = False,
     wait: bool = ...,
-) -> Callable[[Callable[P, Coro[T]]], Callable[P, Coro[T | None]]]:
-    ...
+) -> Callable[[Callable[P, Coro[T]]], Callable[P, Coro[T | None]]]: ...
 
 
 @overload
@@ -95,8 +94,7 @@ def lock(
     *,
     raise_error: Literal[True],
     wait: bool = False,
-) -> Callable[[Callable[P, Coro[T]]], Callable[P, Coro[T]]]:
-    ...
+) -> Callable[[Callable[P, Coro[T]]], Callable[P, Coro[T]]]: ...
 
 
 def lock(

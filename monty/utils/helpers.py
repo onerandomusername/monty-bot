@@ -40,6 +40,22 @@ def find_nth_occurrence(string: str, substring: str, n: int) -> Optional[int]:
     return index
 
 
+def get_num_suffix(num: int) -> str:
+    """Get the suffix for the provided number. Currently a lazy implementation so this only supports 1-20."""
+    if num == 1:
+        suffix = "st"
+    elif num == 2:
+        suffix = "nd"
+    elif num == 3:
+        suffix = "rd"
+    elif 4 <= num < 20:
+        suffix = "th"
+    else:
+        err = "num must be within 1-20. If you receive this error you should refactor the get_num_suffix method."
+        raise RuntimeError(err)
+    return suffix
+
+
 def has_lines(string: str, count: int) -> bool:
     """Return True if `string` has at least `count` lines."""
     # Benchmarks show this is significantly faster than using str.count("\n") or a for loop & break.

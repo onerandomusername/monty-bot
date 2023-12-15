@@ -12,13 +12,12 @@ from cachingutils import LRUMemoryCache, async_cached
 from disnake.ext import commands
 
 from monty.bot import Monty
-from monty.constants import Icons
+from monty.constants import Feature, Icons
 from monty.log import get_logger
 from monty.utils import scheduling
+from monty.utils.helpers import get_num_suffix
 from monty.utils.messages import DeleteButton, extract_urls, suppress_embeds
 
-
-PYTHON_DISCOURSE_AUTOLINK_FEATURE = "PYTHON_DISCOURSE_AUTOLINK"
 
 DOMAIN = "https://discuss.python.org"
 TOPIC_REGEX = re.compile(r"https?:\/\/discuss\.python\.org\/t\/(?:[^\s\/]*\/)*?(?P<num>\d+)(?:\/(?P<reply>\d+))?[^\s]*")
@@ -140,7 +139,7 @@ class PythonDiscourse(commands.Cog):
         if not message.content:
             return
 
-        if not await self.bot.guild_has_feature(message.guild, PYTHON_DISCOURSE_AUTOLINK_FEATURE):
+        if not await self.bot.guild_has_feature(message.guild, Feature.PYTHON_DISCOURSE_AUTOLINK):
             return
 
         posts = self.extract_topic_urls(message.content)
@@ -181,15 +180,7 @@ class PythonDiscourse(commands.Cog):
 
         if len(components) > 1:
             for num, component in enumerate(components, 1):
-                if num == 1:
-                    suffix = "st"
-                elif num == 2:
-                    suffix = "nd"
-                elif num == 3:
-                    suffix = "rd"
-                else:
-                    suffix = "th"
-
+                suffix = get_num_suffix(num)
                 component.label = f"View {num}{suffix} comment"
 
         components.insert(0, DeleteButton(message.author))

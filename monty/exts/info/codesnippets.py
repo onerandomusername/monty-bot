@@ -312,10 +312,8 @@ class CodeSnippets(commands.Cog, name="Code Snippets", slash_command_attrs={"dm_
                     error_message = error.message  # noqa: B306
                     log.log(
                         logging.DEBUG if error.status == 404 else logging.ERROR,
-                        (
-                            f"Failed to fetch code snippet from {match[0]!r}: {error.status} "
-                            f"{error_message} for GET {error.request_info.real_url.human_repr()}"
-                        ),
+                        f"Failed to fetch code snippet from {match[0]!r}: {error.status} "
+                        f"{error_message} for GET {error.request_info.real_url.human_repr()}",
                     )
 
         # Sorts the list of snippets by their match index and joins them into a single message

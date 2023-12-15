@@ -9,7 +9,7 @@ from monty.log import get_logger
 log = get_logger(__name__)
 
 _EXAMPLE_PY = "{lang}\nprint('Hello, world!')"  # Make sure to escape any Markdown symbols here.
-_EXAMPLE_CODE_BLOCKS = "\\`\\`\\`{content}\n\\`\\`\\`\n\n" "**This will result in the following:**\n" "```{content}```"
+_EXAMPLE_CODE_BLOCKS = "\\`\\`\\`{content}\n\\`\\`\\`\n\n**This will result in the following:**\n```{content}```"
 
 
 def _get_example(language: str) -> str:

@@ -3,6 +3,7 @@ Utils for managing features.
 
 This provides a util for a feature in the database to be created representing a specific local feature.
 """
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Callable, Optional, TypeVar, Union
@@ -10,12 +11,12 @@ from typing import TYPE_CHECKING, Callable, Optional, TypeVar, Union
 import disnake
 from disnake.ext import commands
 
+from monty.database.feature import NAME_REGEX
+from monty.errors import FeatureDisabled
+
 
 if TYPE_CHECKING:
     from monty.bot import Monty
-
-from monty.database.feature import NAME_REGEX
-from monty.errors import FeatureDisabled
 
 
 AnyContext = Union[disnake.ApplicationCommandInteraction, commands.Context]

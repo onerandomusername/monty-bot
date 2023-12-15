@@ -122,9 +122,9 @@ def update_wrapper_globals(
     shared_globals &= set(wrapped.__globals__) & set(wrapper.__globals__) - ignored_conflict_names
     if shared_globals:
         raise GlobalNameConflictError(
-            f"wrapper and the wrapped function share the following "
+            "wrapper and the wrapped function share the following "
             f"global names used by annotations: {', '.join(shared_globals)}. Resolve the conflicts or add "
-            f"the name to the `ignored_conflict_names` set to suppress this error if this is intentional."
+            "the name to the `ignored_conflict_names` set to suppress this error if this is intentional."
         )
 
     new_globals = wrapper.__globals__.copy()

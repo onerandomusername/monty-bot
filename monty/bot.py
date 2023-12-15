@@ -95,25 +95,25 @@ class Monty(commands.Bot):
     def create_http_session(self) -> None:
         """Create the aiohttp session and set the trace logger, if desired."""
         trace_configs = []
-        if constants.Client.debug:
-            aiohttp_log = get_logger(__package__ + ".http")
 
-            async def on_request_end(
-                session: aiohttp.ClientSession,
-                ctx: SimpleNamespace,
-                end: aiohttp.TraceRequestEndParams,
-            ) -> None:
-                """Log all aiohttp requests on request end."""
-                resp = end.response
-                aiohttp_log.info(
-                    "[{status!s} {reason!s}] {method!s} {url!s} ({content_type!s})".format(
-                        status=resp.status,
-                        reason=resp.reason,
-                        method=end.method.upper(),
-                        url=end.url,
-                        content_type=resp.content_type,
-                    )
+        aiohttp_log = get_logger(__package__ + ".http")
+
+        async def on_request_end(
+            session: aiohttp.ClientSession,
+            ctx: SimpleNamespace,
+            end: aiohttp.TraceRequestEndParams,
+        ) -> None:
+            """Log all aiohttp requests on request end."""
+            resp = end.response
+            aiohttp_log.info(
+                "[{status!s} {reason!s}] {method!s} {url!s} ({content_type!s})".format(
+                    status=resp.status,
+                    reason=resp.reason,
+                    method=end.method.upper(),
+                    url=end.url,
+                    content_type=resp.content_type,
                 )
+            )
 
             trace_config = aiohttp.TraceConfig()
             trace_config.on_request_end.append(on_request_end)
@@ -207,7 +207,7 @@ class Monty(commands.Bot):
                 if not guild:
                     if not session:
                         session = self.db()
-                    async with (session.begin_nested() if session.in_transaction() else session.begin()) as trans:
+                    async with session.begin_nested() if session.in_transaction() else session.begin() as trans:
                         guild = await session.get(Guild, guild_id)
                         if not guild:
                             guild = Guild(id=guild_id)

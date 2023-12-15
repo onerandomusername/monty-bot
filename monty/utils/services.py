@@ -49,7 +49,7 @@ async def send_to_paste_service(bot: Monty, contents: str, *, extension: str = "
             continue
         except Exception:
             log.exception(
-                f"An unexpected error has occurred during handling of the request, "
+                "An unexpected error has occurred during handling of the request, "
                 f"trying again ({attempt}/{FAILED_REQUEST_ATTEMPTS})."
             )
             continue

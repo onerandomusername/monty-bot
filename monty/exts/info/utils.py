@@ -23,7 +23,9 @@ class Utils(commands.Cog, slash_command_attrs={"dm_permission": False}):
         self.bot = bot
 
     @commands.slash_command(name="char-info")
-    async def charinfo(self, ctx: disnake.ApplicationCommandInteraction, characters: commands.String[..., 50]) -> None:
+    async def charinfo(
+        self, ctx: disnake.ApplicationCommandInteraction, characters: commands.String[str, ..., 50]
+    ) -> None:
         """
         Shows you information on up to 50 unicode characters.
 

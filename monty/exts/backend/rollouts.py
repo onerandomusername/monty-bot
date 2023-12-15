@@ -184,7 +184,7 @@ class RolloutCog(commands.Cog, name="Rollouts"):
         await ctx.reply(
             f"Successfully created rollout **`{name}`**. "
             f"Use **`{ctx.prefix}{' '.join(ctx.invoked_parents)} start {name} <end_time>`** to start the rollout. \n"
-            f"NOTE: The rollout needs to be linked to a target to have an effect. This rollout is currently unlinked.",
+            "NOTE: The rollout needs to be linked to a target to have an effect. This rollout is currently unlinked.",
             components=button,
         )
 
@@ -222,8 +222,10 @@ class RolloutCog(commands.Cog, name="Rollouts"):
         button = DeleteButton(ctx.author, allow_manage_messages=False, initial_message=ctx.message)
         texts = [
             f"Are you sure you want to delete rollout `{rollout.name}`?\n\u200b",
-            "Absolutely certain? There is no going back. "
-            f"Are you completely sure you want to delete rollout `{rollout.name}`?",
+            (
+                "Absolutely certain? There is no going back. "
+                f"Are you completely sure you want to delete rollout `{rollout.name}`?"
+            ),
         ]
 
         message: Optional[disnake.Message] = None

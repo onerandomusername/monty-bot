@@ -12,7 +12,7 @@ WORKDIR /bot
 RUN apt update && apt install git -y
 
 RUN pip install -U pip wheel setuptools
-RUN pip install poetry==1.3
+RUN pip install poetry==1.7.1 poetry-plugin-export==1.6.0
 
 # export requirements after copying req files
 COPY pyproject.toml poetry.lock ./

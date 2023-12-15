@@ -48,6 +48,15 @@ def get_localised_response(inter: disnake.ApplicationCommandInteraction, text: s
     return text.format(**kwargs)
 
 
+async def can_guild_set_config_option(bot: Monty, *, metadata: ConfigAttrMetadata, guild_id: int) -> bool:
+    """Returns True if the configuration option is settable, False if a feature is required."""
+    if metadata.depends_on_features:
+        for feature in metadata.depends_on_features:
+            if not await bot.guild_has_feature(guild_id, feature, create_if_not_exists=False):
+                return False
+    return True
+
+
 @commands.register_injection
 async def config_option(inter: disnake.ApplicationCommandInteraction, option: str) -> tuple[str, ConfigAttrMetadata]:
     """
@@ -58,16 +67,26 @@ async def config_option(inter: disnake.ApplicationCommandInteraction, option: st
     option: The configuration option to act on.
     """
     if option in METADATA:
-        return option, METADATA[option]
+        meta = METADATA[option]
+        config_available = await can_guild_set_config_option(inter.bot, metadata=meta, guild_id=inter.guild_id)
+        if not config_available:
+            raise commands.UserInputError("Could not find a configuration option with that name.")
+
+        return option, meta
     # attempt to see if the user provided a name directly
     option = option.lower()
-    for attr, meta in METADATA.items():
+    for attr, meta in METADATA.items():  # noqa: B007
         if isinstance(meta.name, dict):
             name = meta.name.get(inter.locale) or meta.name.get(inter.guild_locale) or meta.name[disnake.Locale.en_GB]
         else:
             name = meta.name
         if option == name.lower():
-            return attr, meta
+            break
+    else:
+        raise commands.UserInputError("Could not find a configuration option with that name.")
+
+    if await can_guild_set_config_option(inter.bot, metadata=meta, guild_id=inter.guild_id):
+        return attr, meta
 
     raise commands.UserInputError("Could not find a configuration option with that name.")
 
@@ -205,9 +224,11 @@ class Configuration(
 
         response = get_localised_response(
             inter,
-            metadata.status_messages.view_attr_success
-            if current is not None
-            else metadata.status_messages.view_attr_success_unset,
+            (
+                metadata.status_messages.view_attr_success
+                if current is not None
+                else metadata.status_messages.view_attr_success_unset
+            ),
             name=metadata.name,
             current_setting=current,
         )
@@ -301,10 +322,13 @@ class Configuration(
         """Provide autocomplete for config options."""
         # todo: make this better and not like this
         # todo: support non-nullable names (maybe a second autocomplete)
-        # (the above are currently not implemented as there is only two options
+        # (the above are currently not implemented as there aren't many options yet
         # and all of them are nullable)
         options = {}
         for attr, metadata in METADATA.items():
+            # feature lockout of configuration options
+            if not await can_guild_set_config_option(self.bot, metadata=metadata, guild_id=inter.guild_id):
+                continue
             if isinstance(metadata.name, dict):
                 name = get_localised_response(inter, "{name}", name=metadata.name)
             else:

@@ -4,6 +4,7 @@ import functools
 import logging
 import re
 import traceback
+import types
 import typing
 
 import disnake
@@ -59,6 +60,50 @@ class ErrorHandler(
             ctx.command.reset_cooldown(ctx)
         return return_value
 
+    def make_error_message(
+        self, ctx: AnyContext, error: commands.CommandError, *, extended_context: bool = True
+    ) -> str:
+        """Log the error with enough relevant context to properly fix the issue."""
+        if isinstance(ctx, commands.Context):
+            msg = (
+                f"Error occurred in prefix command {ctx.command.qualified_name} in guild"
+                f" {ctx.guild and ctx.guild.id} with user {ctx.author.id}\n"
+            )
+        elif isinstance(ctx, disnake.ApplicationCommandInteraction):
+            cmd_type = ctx.data.type
+            try:
+                cmd_type = cmd_type.name
+            except AttributeError:
+                pass
+            msg = (
+                f"Error occurred in app command {ctx.application_command.qualified_name} of type {cmd_type} in guild"
+                f" {ctx.guild_id} with user {ctx.author.id}\n"
+            )
+        elif isinstance(ctx, disnake.MessageInteraction):
+            msg = (
+                f"Error occurred in message component '{ctx.component.custom_id}' in guild {ctx.guild_id} with user"
+                f" {ctx.author.id}\n"
+            )
+        else:
+            msg = "Error occurred in unknown event\n"
+
+        if not extended_context:
+            return msg
+
+        msg_type = getattr(type(ctx), "__name__", None) or str(type(ctx))
+        msg += f"{self.get_title_from_name(msg_type)}:\n"
+        # dump all attrs of the context minus a few attributes
+        skip = {"token", "bot", "client", "send_error"}
+        for attr in dir(ctx):
+            if attr in skip or attr.startswith("_"):
+                continue
+            prop = getattr(ctx, attr, "???")
+            if isinstance(prop, (types.FunctionType, types.MethodType, functools.partial)):
+                continue
+            msg += f"\t{attr}={prop}\n"
+
+        return msg
+
     async def handle_user_input_error(
         self,
         ctx: AnyContext,
@@ -87,12 +132,11 @@ class ErrorHandler(
             # this is the only place we send a standard message instead of an embed
             # so no helper methods are necessary
             await ctx.send_error(
-                "**Permissions Failure**\n\n" "I am missing the permissions required to properly execute your command."
+                "**Permissions Failure**\n\nI am missing the permissions required to properly execute your command."
             )
             # intentionally not setting responded to True, since we want to attempt to dm the user
             logger.warning(
-                f"Missing partial required permissions for {ctx.channel}. "
-                "I am able to send messages, but not embeds."
+                f"Missing partial required permissions for {ctx.channel}. I am able to send messages, but not embeds."
             )
         else:
             logger.error(f"Unable to send an error message to channel {ctx.channel}")
@@ -171,7 +215,16 @@ class ErrorHandler(
                 should_respond = False
             else:
                 # generic error
-                logger.error("Error occurred in command or message component", exc_info=error.original)
+                if logger.isEnabledFor(logging.ERROR):
+                    try:
+                        msg = self.make_error_message(
+                            ctx, error, extended_context=Client.debug_logging or Client.sentry_enabled
+                        )
+                    except Exception as e:
+                        logger.error("Something went wrong creating the full logging context for an error", exc_info=e)
+                        msg = "Error occurred in prefix or interaction."
+                    logger.error(msg, exc_info=error.original)
+
                 # built in command msg
                 title = "Internal Error"
                 error_str = "".join(

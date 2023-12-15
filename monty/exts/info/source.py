@@ -15,7 +15,7 @@ import rapidfuzz.process
 from disnake.ext import commands
 
 from monty.bot import Monty
-from monty.constants import Client, Source
+from monty.constants import Client, Feature, Source
 from monty.log import get_logger
 from monty.utils.converters import SourceConverter, SourceType
 from monty.utils.helpers import encode_github_link
@@ -31,8 +31,6 @@ if TYPE_CHECKING:
 T = TypeVar("T")
 K = TypeVar("K")
 V = TypeVar("V")
-
-SOURCE_AUTOCOMPLETE_FEATURE_NAME = "META_SOURCE_COMMAND_AUTOCOMPLETE"
 
 
 # todo: move to utils
@@ -135,7 +133,7 @@ class MetaSource(commands.Cog, name="Meta Source", slash_command_attrs={"dm_perm
             await asyncio.sleep(2)
 
             # create the feature in the most stupid way possible
-            await self.bot.guild_has_feature(None, SOURCE_AUTOCOMPLETE_FEATURE_NAME)
+            await self.bot.guild_has_feature(None, Feature.SOURCE_AUTOCOMPLETE)
 
             # these are already proxies
             self.all_cogs = self.bot.cogs
@@ -180,12 +178,12 @@ class MetaSource(commands.Cog, name="Meta Source", slash_command_attrs={"dm_perm
 
             # cache display names to their actual names which can be retrieved from the dict above
             self.object_display_names: dict[str, str] = {}
-            self.object_display_names.update(
-                {name: name for name, obj in self.all_objects.items() if not isinstance(obj, commands.Cog)}
-            )
-            self.object_display_names.update(
-                {COG_NAME_REGEX.sub(r" \1", name): name for name in self.all_cogs if name != "PyPI"}
-            )
+            self.object_display_names.update({
+                name: name for name, obj in self.all_objects.items() if not isinstance(obj, commands.Cog)
+            })
+            self.object_display_names.update({
+                COG_NAME_REGEX.sub(r" \1", name): name for name in self.all_cogs if name != "PyPI"
+            })
 
             unsorted = self.object_display_names.copy()
             self.object_display_names.clear()
@@ -262,7 +260,7 @@ class MetaSource(commands.Cog, name="Meta Source", slash_command_attrs={"dm_perm
     async def source_autocomplete(self, inter: disnake.CommandInteraction, query: str) -> dict[str, str]:
         """Implement autocomplete for the meta source command."""
         # shortcircuit if the feature is not enabled
-        new_autocomplete = await self.bot.guild_has_feature(inter.guild_id, SOURCE_AUTOCOMPLETE_FEATURE_NAME)
+        new_autocomplete = await self.bot.guild_has_feature(inter.guild_id, Feature.SOURCE_AUTOCOMPLETE)
         if not new_autocomplete:
             return {query: query} if query else {}
 
@@ -272,7 +270,7 @@ class MetaSource(commands.Cog, name="Meta Source", slash_command_attrs={"dm_perm
 
         if not query:
             # we need to shortcircuit and skip the fuzzing results
-            return {name: value for name, value in random.sample(list(self.object_display_names.items()), k=25)}
+            return dict(random.sample(list(self.object_display_names.items()), k=25))
 
         fuzz_results = rapidfuzz.process.extract(
             query,

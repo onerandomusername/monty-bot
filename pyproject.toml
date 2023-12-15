@@ -17,7 +17,7 @@ beautifulsoup4 = "^4.10.0"
 cachingutils = { git = "https://github.com/onerandomusername/cachingutils.git", rev='vcokltfre/feat/v2' }
 colorama = { version = "~=0.4.5", markers = "sys_platform == 'win32'" }
 coloredlogs = "~=15.0"
-disnake = { git = "https://github.com/onerandomusername/disnake.git", rev='master' }
+disnake = { version = '~=2.9.0' }
 orjson = "^3.8.5"
 fakeredis = "^2.10.1"
 gql = "^3.4.0"
@@ -25,7 +25,7 @@ lxml = "^4.9.1"
 markdownify = "==0.11.6"
 mistune = "^2.0.4"
 redis = { version = "^4.5.4", extras = ['hiredis'] }
-Pillow = "^9.2.0"
+Pillow = "^10.0"
 psutil = "^5.9.4"
 rapidfuzz = "^2.13.2"
 statsd = "^3.3.0"
@@ -39,12 +39,12 @@ SQLAlchemy = { version = "~=2.0.6", extras = ['asyncio'] }
 fakeredis = ['fakeredis']
 
 [tool.poetry.dev-dependencies]
-black = "^23.1"
-ruff = "==0.0.257"
+black = "^23.11.0"
+ruff = "==0.1.6"
 isort = "^5.12.0"
 pre-commit = "^3.0.4"
 taskipy = "~=1.10.3"
-python-dotenv = "~=0.21.0"
+python-dotenv = "^1.0.0"
 pyright = "==1.1.278"
 
 [build-system]
@@ -55,6 +55,7 @@ build-backend = "poetry.core.masonry.api"
 line-length = 120
 target-version = ['py38']
 include = '\.pyi?$'
+preview = true
 
 [tool.isort]
 profile = "black"
@@ -104,6 +105,7 @@ ignore = [
     "C901", # mccabe
     "S101", # Use of `assert` detected
     "S110", # try-except-pass
+    "S311", # pseduo-random generators, random is used everywhere for random choices.
 ]
 
 [tool.ruff.per-file-ignores]

@@ -29,9 +29,7 @@ if constants.Tokens.github:
 DISCORD_API_VALIDATION = "https://discord.com/api/v10/oauth2/applications/@me"
 DISCORD_REQUEST_HEADERS = {}
 
-LOG_MESSAGE = (
-    "Censored a seemingly valid token sent by {author} in {channel}, " "token was `{user_id}.{timestamp}.{hmac}`"
-)
+LOG_MESSAGE = "Censored a seemingly valid token sent by {author} in {channel}, token was `{user_id}.{timestamp}.{hmac}`"
 UNKNOWN_USER_LOG_MESSAGE = "Decoded user ID: `{user_id}` (Not present in server)."
 KNOWN_USER_LOG_MESSAGE = (
     "Decoded user ID: `{user_id}` **(Present in server)**.\n"
@@ -58,8 +56,6 @@ TOKEN_RE = re.compile(r"([a-z0-9_-]{23,28})\.([a-z0-9_-]{6,7})\.([a-z0-9_-]{27,}
 # This checks for MFA tokens, and its not nearly as complex. if we match this, we don't check everything
 # because its not possible.
 MFA_TOKEN_RE = re.compile(r"(mfa\.[a-z0-9_-]{20,})", re.IGNORECASE)
-
-TOKEN_REMOVER_FEATURE_NAME = "DISCORD_BOT_TOKEN_FILTER"  # noqa: S105
 
 
 @attr.s(kw_only=False, auto_attribs=True)
@@ -113,7 +109,7 @@ class TokenRemover(commands.Cog, name="Token Remover", slash_command_attrs={"dm_
         if not msg.guild:
             return
 
-        if not await self.bot.guild_has_feature(msg.guild, TOKEN_REMOVER_FEATURE_NAME):
+        if not await self.bot.guild_has_feature(msg.guild, constants.Feature.DISCORD_TOKEN_REMOVER):
             return
 
         found_tokens = self.find_token_in_message(msg)
@@ -222,8 +218,7 @@ class TokenRemover(commands.Cog, name="Token Remover", slash_command_attrs={"dm_
             await self.maybe_delete(msg)
 
         log_message = (
-            f"Deleted mfa token sent by {msg.author} in {msg.channel}: "
-            f"{token[:4]}{'x' * len(token[3:-3])}{token[-3:]}"
+            f"Deleted mfa token sent by {msg.author} in {msg.channel}: {token[:4]}{'x' * len(token[3:-3])}{token[-3:]}"
         )
 
         log.info(log_message)

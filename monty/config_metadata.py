@@ -7,6 +7,8 @@ import disnake
 from disnake import Locale
 from disnake.ext import commands
 
+from monty.constants import Feature
+
 
 if TYPE_CHECKING:
     from monty.bot import Monty
@@ -63,6 +65,7 @@ class ConfigAttrMetadata:
     type: Union[Type[str], Type[int], Type[float], Type[bool]]
     requires_bot: bool = True
     long_description: Optional[str] = None
+    depends_on_features: Optional[tuple[str]] = None
     validator: Optional[Union[Callable, Callable[Any, Coroutine]]] = None
     status_messages: StatusMessages = field(default_factory=StatusMessages)
 
@@ -81,7 +84,7 @@ METADATA: dict[str, ConfigAttrMetadata] = dict(  # noqa: C408
         type=str,
         name={
             Locale.en_US: "GitHub Issue Organization",
-            Locale.en_GB: "Github Issue Organisation",
+            Locale.en_GB: "GitHub Issue Organisation",
         },
         description={
             Locale.en_US: "A specific organization or user to use as the default org for GitHub related commands.",
@@ -91,16 +94,34 @@ METADATA: dict[str, ConfigAttrMetadata] = dict(  # noqa: C408
     ),
     git_file_expansions=ConfigAttrMetadata(
         type=bool,
-        name="Git File Expansions",
-        description="Bitbucket, GitLab, and GitHub automatic file expansions.",
+        name="GitHub/GitLab/BitBucket File Expansions",
+        description="BitBucket, GitLab, and GitHub automatic file expansions.",
+        long_description=(
+            "Automatically expand links to specific lines for GitHub, GitLab, and BitBucket when possible."
+        ),
     ),
     github_issue_linking=ConfigAttrMetadata(
         type=bool,
-        name="Github Automatic Issue Linking",
+        name="GitHub Issue Linking",
         description="Automatically link GitHub issues if they match the inline markdown syntax on GitHub.",
         long_description=(
             "Automatically link GitHub issues if they match the inline markdown syntax on GitHub. "
             "For example, `onerandomusername/monty-python#223` will provide a link to issue 223."
         ),
     ),
+    github_comment_linking=ConfigAttrMetadata(
+        type=bool,
+        name="GitHub Comment Linking",
+        depends_on_features=(Feature.GITHUB_COMMENT_LINKS,),
+        description="Automatically expand a GitHub comment link. Requires GitHub Issue Linking to have an effect.",
+    ),
 )
+
+
+# check the config metadata is valid
+def _check_config_metadata(metadata: dict[str, ConfigAttrMetadata]) -> None:
+    for m in metadata.values():
+        assert 0 < len(m.description) < 100
+
+
+_check_config_metadata(METADATA)

@@ -81,7 +81,7 @@ def setup() -> None:
 
     coloredlogs.install(level=TRACE, stream=sys.stdout)
 
-    root_logger.setLevel(logging.DEBUG if Client.debug else logging.INFO)
+    root_logger.setLevel(logging.DEBUG if Client.debug_logging else logging.INFO)
     # Silence irrelevant loggers
     logging.getLogger("disnake").setLevel(logging.WARNING)
     logging.getLogger("websockets").setLevel(logging.WARNING)

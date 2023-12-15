@@ -1,7 +1,7 @@
 """
 Do not import this file.
 
-NOTE: THIS RUNS ON PYTHON 3.10
+NOTE: THIS RUNS ON PYTHON 3.11
 """
 
 # exit codes:

@@ -134,10 +134,10 @@ async def fetch_inventory(bot: Monty, url: str, *, use_cache: bool = True) -> Op
             inventory = await _fetch_inventory(bot, url)
         except aiohttp.ClientConnectorError:
             log.warning(
-                f"Failed to connect to inventory url at {url}; " f"trying again ({attempt}/{FAILED_REQUEST_ATTEMPTS})."
+                f"Failed to connect to inventory url at {url}; trying again ({attempt}/{FAILED_REQUEST_ATTEMPTS})."
             )
         except aiohttp.ClientError:
-            log.error(f"Failed to get inventory from {url}; " f"trying again ({attempt}/{FAILED_REQUEST_ATTEMPTS}).")
+            log.error(f"Failed to get inventory from {url}; trying again ({attempt}/{FAILED_REQUEST_ATTEMPTS}).")
         except InvalidHeaderError:
             raise
         except Exception:
