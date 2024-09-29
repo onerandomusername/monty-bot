@@ -6,11 +6,11 @@ from typing import Optional
 import disnake
 import psutil
 from disnake.ext import commands
-from disnake.ext.commands import LargeInt, Range
+from disnake.ext.commands import LargeInt
 
 from monty.bot import Monty
 from monty.constants import Client, Colours
-from monty.utils.helpers import utcnow
+from monty.utils import helpers
 from monty.utils.messages import DeleteButton
 
 
@@ -132,7 +132,6 @@ class Meta(commands.Cog, slash_command_attrs={"dm_permission": False}):
     async def invite(
         self,
         inter: disnake.CommandInteraction,
-        permissions: Range[0, disnake.Permissions.all().value] = None,
         guild_id: LargeInt = None,
         raw_link: bool = False,
         ephemeral: bool = None,
@@ -142,28 +141,47 @@ class Meta(commands.Cog, slash_command_attrs={"dm_permission": False}):
 
         Parameters
         ----------
-        permissions: The permissions to grant the invite link.
-        guild_id: The guild to invite the bot to.
-        raw_link: Whether to return the raw invite link.
         ephemeral: Whether to send the invite link as an ephemeral message.
+        raw_link: Whether to return the raw invite link.
+        guild_id: The guild to prefill the invite link with.
         """
         if ephemeral is None:
             ephemeral = bool(inter.guild_id)
 
-        # ignore because we don't have any spaces in the command name
-        # therefore, it will always be a slash command and not a subcommand or group
-        discord_command: commands.InvokableSlashCommand = self.bot.get_slash_command("discord")  # type: ignore
+        appinfo = await self.application_info()
 
-        if not discord_command:
-            raise commands.CommandError("Could not create an invite link right now.")
-        invite_command = discord_command.children["app-invite"]
-        await invite_command(
-            inter,
-            client_id=self.bot.user.id,
-            permissions=permissions,
-            guild_id=guild_id,
-            include_applications_commands=True,
-            raw_link=raw_link,
+        urls = helpers.get_invite_link_from_app_info(appinfo)
+
+        message = "Click below to invite me!" if not raw_link else "Click the following link to invite me!"
+
+        components = []
+
+        if not ephemeral:
+            components.append(DeleteButton(inter.author))
+
+        if raw_link:
+            if isinstance(urls, dict):
+
+                message += "\n"
+                for title, url in urls.items():
+                    message += title + ": <" + url + ">\n"
+            else:
+                message += f"\n{urls}"
+        else:
+            if isinstance(urls, dict):
+                for title, url in urls.items():
+                    components.append(disnake.ui.Button(url=url, style=disnake.ButtonStyle.link, label=title))
+            else:
+                components.append(
+                    disnake.ui.Button(
+                        url=urls, style=disnake.ButtonStyle.link, label=f"Click to invite {inter.bot.user.name}!"
+                    )
+                )
+
+        await inter.response.send_message(
+            message,
+            allowed_mentions=disnake.AllowedMentions.none(),
+            components=components,
             ephemeral=ephemeral,
         )
 
@@ -233,9 +251,9 @@ class Meta(commands.Cog, slash_command_attrs={"dm_permission": False}):
 
     async def application_info(self) -> disnake.AppInfo:
         """Fetch the application info using a local hour-long cache."""
-        if not self._app_info_last_fetched or utcnow() - self._app_info_last_fetched > timedelta(hours=1):
+        if not self._app_info_last_fetched or helpers.utcnow() - self._app_info_last_fetched > timedelta(hours=0):
             self._cached_app_info = await self.bot.application_info()
-            self._app_info_last_fetched = utcnow()
+            self._app_info_last_fetched = helpers.utcnow()
         return self._cached_app_info
 
     @monty.sub_command()

@@ -4,15 +4,16 @@ from typing import TYPE_CHECKING
 
 import disnake
 from disnake.ext import commands
-from disnake.ext.commands import LargeInt, Range
+from disnake.ext.commands import LargeInt
 
 from monty.bot import Monty
 from monty.constants import Endpoints
+from monty.utils import helpers
 from monty.utils.messages import DeleteButton
 
 
 if TYPE_CHECKING:
-    from disnake.types.appinfo import AppInfo
+    from disnake.types.appinfo import AppInfo as AppInfoPayload
 
 
 INVITE = """
@@ -39,6 +40,24 @@ class Discord(commands.Cog, slash_command_attrs={"dm_permission": False}):
     def __init__(self, bot: Monty) -> None:
         self.bot = bot
 
+    async def fetch_app_info_for_client(self, client_id: int) -> disnake.AppInfo:
+        """Given a client ID, fetch the user."""
+        async with self.bot.http_session.get(Endpoints.app_info.format(application_id=client_id)) as resp:
+            if resp.status != 200:
+                content = "Could not get application info."
+                content += "\nThis may be a result of the application not existing, or not being a valid user."
+                e = commands.UserInputError(content)
+                raise e
+            data: AppInfoPayload = await resp.json()
+
+        # add some missing attributes that we don't use but the library needs
+        data.setdefault("rpc_origins", [])
+        # we are not using the user, we just need it to serialize, so we're loading with fake data of itself
+        data["owner"] = self.bot.user._to_minimal_user_json()
+
+        appinfo = disnake.AppInfo(self.bot._connection, data)
+        return appinfo
+
     @commands.slash_command()
     async def discord(self, inter: disnake.CommandInteraction) -> None:
         """Commands that interact with discord."""
@@ -50,43 +69,19 @@ class Discord(commands.Cog, slash_command_attrs={"dm_permission": False}):
         pass
 
     @api.sub_command(name="app-info")
-    async def info_bot(self, inter: disnake.CommandInteraction, client_id: LargeInt, ephemeral: bool = True) -> None:
+    async def info_app(self, inter: disnake.CommandInteraction, client_id: LargeInt, ephemeral: bool = True) -> None:
         """
-        [DEV] Get information on an bot from its ID. May not work with all bots.
+        [DEV] Get information on an app from its ID. May not work with all apps.
 
         Parameters
         ----------
-        client_id: The ID of the bot.
-        ephemeral: Whether to send the bot info as an ephemeral message.
+        client_id: The ID of the app.
+        ephemeral: Whether to send the app info as an ephemeral message.
         """
-        # attempt to do a precursory check on the client_id
-        user = self.bot.get_user(client_id)
-        if not user:
-            try:
-                user = await self.bot.fetch_user(client_id)
-            except disnake.NotFound:
-                raise commands.UserNotFound(client_id) from None
-        if not user.bot:
-            await inter.send("You can only run this command on bots or applications.", ephemeral=True)
-            return
-
-        async with self.bot.http_session.get(Endpoints.app_info.format(application_id=client_id)) as resp:
-            if resp.status != 200:
-                content = "Could not get application info."
-                if not user:
-                    content += "\nThis may be a result of the application not existing, or not being a valid user."
-                await inter.send(content, ephemeral=True)
-                return
-            data: AppInfo = await resp.json()
-
-        # add some missing attributes that we don't use but the library needs
-        data.setdefault("rpc_origins", [])
-        data["owner"] = user._to_minimal_user_json()
-
-        appinfo = disnake.AppInfo(self.bot._connection, data)
+        appinfo = await self.fetch_app_info_for_client(client_id)
 
         embed = disnake.Embed(
-            title=f"Bot info for {user.name}",
+            title=f"Application info for {appinfo.name}",
         )
         if appinfo.icon:
             embed.set_thumbnail(url=appinfo.icon.url)
@@ -96,8 +91,8 @@ class Discord(commands.Cog, slash_command_attrs={"dm_permission": False}):
         if appinfo.description:
             embed.add_field("About me:", appinfo.description, inline=False)
 
-        if data.get("tags"):
-            embed.add_field(name="Tags", value=", ".join(sorted(data["tags"])), inline=False)
+        if appinfo.tags:
+            embed.add_field(name="Tags", value=", ".join(sorted(appinfo.tags)), inline=False)
 
         if appinfo.terms_of_service_url or appinfo.privacy_policy_url:
             embed.add_field(
@@ -107,9 +102,10 @@ class Discord(commands.Cog, slash_command_attrs={"dm_permission": False}):
             )
 
         flags = ""
-        for flag, value in sorted(appinfo.flags, key=lambda x: x[0]):
-            flags += f"{flag}:`{value}`\n"
-        embed.add_field(name="Flags", value=flags, inline=False)
+        if appinfo.flags:
+            for flag, value in sorted(appinfo.flags, key=lambda x: x[0]):
+                flags += f"{flag}:`{value}`\n"
+            embed.add_field(name="Flags", value=flags, inline=False)
 
         if not ephemeral:
             components = DeleteButton(inter.author)
@@ -123,9 +119,8 @@ class Discord(commands.Cog, slash_command_attrs={"dm_permission": False}):
         self,
         inter: disnake.AppCmdInter,
         client_id: LargeInt,
-        permissions: Range[int, 0, disnake.Permissions.all().value] = None,
+        # permissions: Range[int, 0, disnake.Permissions.all().value] = None,
         guild_id: LargeInt = None,
-        include_applications_commands: bool = True,
         raw_link: bool = False,
         ephemeral: bool = True,
     ) -> None:
@@ -141,67 +136,51 @@ class Discord(commands.Cog, slash_command_attrs={"dm_permission": False}):
         raw_link: Instead of a fancy button, I'll give you the raw link.
         ephemeral: Whether or not to send an ephemeral response.
         """
-        if not client_id:
-            client_id = inter.bot.user.id
-
-        if permissions is not None:
-            perms = disnake.Permissions(permissions)
-        elif client_id == inter.bot.user.id:
-            perms = self.bot.invite_permissions
-        else:
-            perms = disnake.Permissions.all()
-            # discord doesn't allow bots to request these permissions
-            perms.stream = False
-            perms.view_guild_insights = False
-            perms.use_slash_commands = False
-            perms.request_to_speak = False
-            perms.start_embedded_activities = False
-
-            # remove the admin perm
-            perms.administrator = False
-
-        if guild_id is not None:
-            guild = disnake.Object(guild_id)
-        else:
-            guild = disnake.utils.MISSING
-
-        # validated all of the input, now see if client_id exists
         try:
-            user = inter.bot.get_user(client_id) or await inter.bot.fetch_user(client_id)
-        except disnake.NotFound:
-            await inter.response.send_message("Sorry, that user does not exist.", ephemeral=True)
+            app_info = await self.fetch_app_info_for_client(client_id)
+        except commands.UserInputError as e:
+            await inter.response.send_message(str(e), ephemeral=True)
             return
 
-        if not user.bot:
-            await inter.response.send_message("Sorry, that user is not a bot.", ephemeral=True)
-            return
+        urls = helpers.get_invite_link_from_app_info(app_info, guild_id=guild_id)
 
-        scopes = ("bot", "applications.commands") if include_applications_commands else ("bot",)
-        url = disnake.utils.oauth_url(
-            client_id,
-            permissions=perms,
-            guild=guild,
-            scopes=scopes,
-        )
         message = " ".join(
             [
                 "Click below to invite" if not raw_link else "Click the following link to invite",
-                "me" if client_id == inter.bot.user.id else user.mention,
-                "to the specified guild!" if guild else "to your guild!",
+                "me" if client_id == inter.bot.user.id else app_info.name,
+                "to the specified guild!" if guild_id else "to your guild!",
             ]
         )
 
         components = []
 
+        labels = {
+            disnake.ApplicationIntegrationType.user: "User install",
+            disnake.ApplicationIntegrationType.guild: "Guild invite",
+        }
+
         if not ephemeral:
             components.append(DeleteButton(inter.author))
 
-        if raw_link:
-            message += f"\n{url}"
+        if isinstance(urls, dict):
+            if raw_link:
+                message += "\n"
+            for install_context, url in urls.items():
+                title = labels[install_context]
+                if raw_link:
+                    message += title + ": <" + url + ">\n"
+                else:
+                    components.append(disnake.ui.Button(url=url, style=disnake.ButtonStyle.link, label=title))
+
         else:
-            components.append(
-                disnake.ui.Button(url=url, style=disnake.ButtonStyle.link, label=f"Click to invite {user.name}!")
-            )
+            if raw_link:
+                message += f"\n{urls}"
+            else:
+                components.append(
+                    disnake.ui.Button(
+                        url=urls, style=disnake.ButtonStyle.link, label=f"Click to invite {app_info.name}!"
+                    )
+                )
 
         await inter.response.send_message(
             message,
