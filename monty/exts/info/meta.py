@@ -152,7 +152,12 @@ class Meta(commands.Cog, slash_command_attrs={"dm_permission": False}):
 
         urls = helpers.get_invite_link_from_app_info(appinfo)
 
-        message = "Click below to invite me!" if not raw_link else "Click the following link to invite me!"
+        message = "Click below to add me!" if not raw_link else "Click the following link to add me!"
+
+        labels = {
+            disnake.ApplicationIntegrationTypes(user=True).values[0]: "User install (global commands)",
+            disnake.ApplicationIntegrationTypes(guild=True).values[0]: "Guild invite",
+        }
 
         components = []
 
@@ -163,13 +168,15 @@ class Meta(commands.Cog, slash_command_attrs={"dm_permission": False}):
             if isinstance(urls, dict):
 
                 message += "\n"
-                for title, url in urls.items():
+                for num, url in urls.items():
+                    title = labels[num]
                     message += title + ": <" + url + ">\n"
             else:
                 message += f"\n{urls}"
         else:
             if isinstance(urls, dict):
-                for title, url in urls.items():
+                for num, url in urls.items():
+                    title = labels[num]
                     components.append(disnake.ui.Button(url=url, style=disnake.ButtonStyle.link, label=title))
             else:
                 components.append(

@@ -153,32 +153,32 @@ def get_invite_link_from_app_info(
     *,
     guild_id: int = None,
     default_permissions: disnake.Permissions = None,
-) -> str | dict[disnake.ApplicationIntegrationType, str]:
+) -> str | dict[int, str]:
     """Get an invite link from the provided disnake.AppInfo object."""
-    urls: str | dict[disnake.ApplicationIntegrationType, str] = ""
-    if disnake.ApplicationIntegrationType.guild in app_info.integration_types_config:
-        if disnake.ApplicationIntegrationType.user in app_info.integration_types_config:
+    urls: str | dict[int, str] = ""
+    if disnake.ApplicationIntegrationTypes(guild=True).values[0] in app_info.integration_types_config:
+        if disnake.ApplicationIntegrationTypes(user=True).values[0] in app_info.integration_types_config:
             # we can provide a link that works for both, actually don't have to provide anything else
 
-            if any(g.oauth2_install_params for g in app_info.integration_types_config.values()):
+            if any(g.install_params for g in app_info.integration_types_config.values()):
                 urls = f"https://discord.com/oauth2/authorize?client_id={app_info.id}"
             else:
                 urls = {
-                    disnake.ApplicationIntegrationType.user: disnake.utils.oauth_url(
+                    disnake.ApplicationIntegrationTypes(user=True).values[0]: disnake.utils.oauth_url(
                         client_id=app_info.id,
                         scopes=("applications.commands",),
-                        integration_type=disnake.ApplicationIntegrationType.user,
+                        integration_type=disnake.ApplicationIntegrationTypes(user=True).values[0],
                     ),
-                    disnake.ApplicationIntegrationType.guild: disnake.utils.oauth_url(
+                    disnake.ApplicationIntegrationTypes(guild=True).values[0]: disnake.utils.oauth_url(
                         client_id=app_info.id,
                         scopes=("applications.commands", "bot"),
-                        integration_type=disnake.ApplicationIntegrationType.guild,
+                        integration_type=disnake.ApplicationIntegrationTypes(guild=True).values[0],
                     ),
                 }
         else:
             # guild installs only
             for g in app_info.integration_types_config.values():
-                if g.oauth2_install_params and (permissions := g.oauth2_install_params.permissions):
+                if g.install_params and (permissions := g.install_params.permissions):
                     break
             else:
                 permissions = default_permissions or disnake.utils.MISSING
@@ -187,16 +187,16 @@ def get_invite_link_from_app_info(
                 scopes=("applications.commands", "bot"),
                 guild=guild_id and disnake.Object(guild_id) or disnake.utils.MISSING,
                 permissions=permissions,
-                integration_type=disnake.ApplicationIntegrationType.guild,
+                integration_type=disnake.ApplicationIntegrationTypes(guild=True).values[0],
                 client_id=app_info.id,
             )
     else:
-        if disnake.ApplicationIntegrationType.user in app_info.integration_types_config:
+        if disnake.ApplicationIntegrationTypes(user=True).values[0] in app_info.integration_types_config:
             # user installs only
             urls = disnake.utils.oauth_url(
                 client_id=app_info.id,
                 scopes=("applications.commands",),
-                integration_type=disnake.ApplicationIntegrationType.user,
+                integration_type=disnake.ApplicationIntegrationTypes(user=True).values[0],
             )
         else:
             # some other form of install that we don't know of....

@@ -155,8 +155,8 @@ class Discord(commands.Cog, slash_command_attrs={"dm_permission": False}):
         components = []
 
         labels = {
-            disnake.ApplicationIntegrationType.user: "User install",
-            disnake.ApplicationIntegrationType.guild: "Guild invite",
+            disnake.ApplicationIntegrationTypes(user=True).values[0]: "User install",
+            disnake.ApplicationIntegrationTypes(guild=True).values[0]: "Guild invite",
         }
 
         if not ephemeral:
