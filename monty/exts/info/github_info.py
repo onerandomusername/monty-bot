@@ -208,7 +208,14 @@ class GithubInfo(commands.Cog, name="GitHub Information", slash_command_attrs={"
         self.bot = bot
 
         transport = AIOHTTPTransport(
-            url="https://api.github.com/graphql", timeout=20, headers=GITHUB_REQUEST_HEADERS, ssl=True
+            url="https://api.github.com/graphql",
+            timeout=20,
+            headers=GITHUB_REQUEST_HEADERS,
+            ssl=True,
+            client_session_args={
+                # used for applying proxy settings
+                "request_class": bot.http_request_class,
+            },
         )
 
         self.gql = gql.Client(transport=transport, fetch_schema_from_transport=True)

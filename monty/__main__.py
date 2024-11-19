@@ -94,11 +94,6 @@ async def main() -> None:
         sync_commands_debug=True,
         sync_on_cog_actions=True,
     )
-
-    kwargs = {}
-    if constants.Client.proxy is not None:
-        kwargs["proxy"] = constants.Client.proxy
-
     bot = Monty(
         redis_session=redis_session,
         command_prefix=constants.Client.default_command_prefix,
@@ -106,7 +101,7 @@ async def main() -> None:
         allowed_mentions=disnake.AllowedMentions(everyone=False),
         intents=_intents,
         command_sync_flags=command_sync_flags,
-        **kwargs,
+        proxy=constants.Client.proxy,
     )
 
     try:
