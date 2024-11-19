@@ -13,10 +13,12 @@ from disnake.ext import commands
 from monty.bot import Monty
 from monty.constants import Client
 from monty.log import get_logger
+from monty.metadata import ExtMetadata
 from monty.utils import responses
 from monty.utils.messages import DeleteButton
 
 
+EXT_METADATA = ExtMetadata(core=True)
 if typing.TYPE_CHECKING:
     AnyContext = typing.Union[commands.Context, disnake.Interaction]
 

@@ -89,6 +89,9 @@ class Monty(commands.Bot):
         scheduling.create_task(self.get_self_invite_perms())
         scheduling.create_task(self._create_features())
 
+        self._autoreload_task: asyncio.Task | None = None
+        self._autoreload_log_channel: disnake.abc.Messageable | None = None
+
     @property
     def db(self) -> async_sessionmaker[AsyncSession]:
         """Alias of `bot.db_session`."""

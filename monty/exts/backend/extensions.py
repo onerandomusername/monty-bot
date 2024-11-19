@@ -1,4 +1,5 @@
 import functools
+import importlib.util
 import typing as t
 from enum import Enum
 
@@ -10,18 +11,19 @@ from monty.bot import Monty
 from monty.constants import Client
 from monty.log import get_logger
 from monty.metadata import ExtMetadata
+from monty.utils import scheduling
 from monty.utils.converters import Extension
 from monty.utils.extensions import EXTENSIONS, invoke_help_command
 from monty.utils.messages import DeleteButton
 from monty.utils.pagination import LinePaginator
 
 
-EXT_METADATA = ExtMetadata(core=True)
+EXT_METADATA = ExtMetadata(core=True, no_unload=True)
 
 log = get_logger(__name__)
 
 
-UNLOAD_BLACKLIST = {__name__}
+UNLOAD_BLACKLIST: set[str] = set()
 BASE_PATH_LEN = exts.__name__.count(".")
 
 
@@ -39,6 +41,28 @@ class Extensions(commands.Cog, slash_command_attrs={"dm_permission": False}):
 
     def __init__(self, bot: Monty) -> None:
         self.bot = bot
+
+        self._unloading_through_autoreload = None
+
+    async def cog_load(self) -> None:
+        """Resume autoreload if it is enabled."""
+        if self.bot._autoreload_log_channel and self.bot._autoreload_task:
+            # remake the task
+            if not self.bot._autoreload_task.done():
+                # don't immediately cancel so it has a moment to finish the request to the discord channel
+                self.bot.loop.call_later(1, self.bot._autoreload_task.cancel)
+
+            self.bot._autoreload_task = scheduling.create_task(
+                self._autoreload_worker(self.bot._autoreload_log_channel)
+            )
+        else:
+            log.error("didn't remake")
+
+    def cog_unload(self) -> None:
+        """Cancel the coro on unload."""
+        if not self._unloading_through_autoreload and not self.bot._autoreload_log_channel:
+            if self.bot._autoreload_task and not self.bot._autoreload_task.done():
+                self.bot._autoreload_task.cancel()
 
     @commands.group(
         name="extensions",
@@ -79,13 +103,18 @@ class Extensions(commands.Cog, slash_command_attrs={"dm_permission": False}):
             await invoke_help_command(ctx)
             return
 
+        # set up the blacklist if it hasn't been loaded yet
+        global UNLOAD_BLACKLIST
+        if not UNLOAD_BLACKLIST:
+            UNLOAD_BLACKLIST = {name for name, ext_meta in EXTENSIONS.items() if ext_meta.no_unload}
+
         blacklisted = "\n".join(UNLOAD_BLACKLIST & set(extensions))
 
         if blacklisted:
             msg = f":x: The following extension(s) may not be unloaded:```{blacklisted}```"
         else:
             if "*" in extensions or "**" in extensions:
-                extensions = set(self.bot.extensions.keys()) - UNLOAD_BLACKLIST
+                extensions = tuple(set(self.bot.extensions.keys()) - UNLOAD_BLACKLIST)  # type: ignore
 
             msg = self.batch_manage(Action.UNLOAD, *extensions)
 
@@ -221,17 +250,71 @@ class Extensions(commands.Cog, slash_command_attrs={"dm_permission": False}):
 
         return msg, error_msg
 
+    async def _autoreload_worker(self, channel: disnake.abc.Messageable) -> None:
+        import watchfiles
+
+        ext_paths = {module.__file__: extension for extension, module in self.bot.extensions.items() if module.__file__}
+
+        self.bot._autoreload_log_channel = channel  # add for use in cog_unload
+
+        async for changes in watchfiles.awatch(*ext_paths):
+            modified_extensions = set()
+            for change in changes:
+                if change[0] != 2 or change[1] not in ext_paths:
+                    # file was either deleted, created?!?! or something else
+                    continue
+                modified_extensions.add(ext_paths[change[1]])
+
+            if __name__ in modified_extensions:
+                # we bug out if we try to reload ourselves. It cancels the task
+                # this is utterly terrible code
+                self.bot.cogs["Extensions"]._unloading_through_autoreload = True
+                self.bot._autoreload_log_channel = channel  # readd in case it was removed
+
+            msg = self.batch_manage(Action.RELOAD, *modified_extensions)
+
+            await channel.send("autoreload detected changes::\n" + msg)
+
+    # developer autoreloading
+    @extensions_group.group(
+        name="autoreload",
+        aliases=("ar",),
+        invoke_without_command=True,
+    )
+    async def autoreload(self, ctx: commands.Context) -> None:
+        """Autoreload of modified extensions."""
+        msg = "Autoreload is currently: "
+        msg += "enabled" if self.bot._autoreload_task and not self.bot._autoreload_task.done() else "disabled"
+        msg += "."
+        await ctx.send(msg)
+
+    @autoreload.command(name="enable")
+    async def enable_autoreload(self, ctx: commands.Context) -> None:
+        """Enable extension autoreload."""
+        if not importlib.util.find_spec("watchfiles"):
+            raise RuntimeError("Watchfiles not installed. Command not usable.")
+
+        if self.bot._autoreload_task and not self.bot._autoreload_task.done():
+            raise commands.BadArgument("Autoreload task already exists")
+
+        self.bot._autoreload_task = scheduling.create_task(self._autoreload_worker(ctx.channel))
+        await ctx.send("Enabled autoreload task!")
+
+    @autoreload.command(name="disable")
+    async def disable_autoreload(self, ctx: commands.Context) -> None:
+        """Disable extension autoreload."""
+        if not self.bot._autoreload_task:
+            raise commands.BadArgument("Reload was already off.")
+
+        if not self.bot._autoreload_task.done():
+            self.bot._autoreload_task.cancel()
+        self.bot._autoreload_log_channel = None
+        await ctx.send("Disabled autoreload task!")
+
     # This cannot be static (must have a __func__ attribute).
     async def cog_check(self, ctx: commands.Context) -> bool:
         """Only allow moderators and core developers to invoke the commands in this cog."""
         return await self.bot.is_owner(ctx.author)
-
-    # This cannot be static (must have a __func__ attribute).
-    async def cog_command_error(self, ctx: commands.Context, error: Exception) -> None:
-        """Handle BadArgument errors locally to prevent the help command from showing."""
-        if isinstance(error, commands.BadArgument):
-            await ctx.send(str(error))
-            error.handled = True
 
 
 def setup(bot: Monty) -> None:

@@ -73,4 +73,4 @@ async def invoke_help_command(ctx: commands.Context) -> None:
     await ctx.send_help(ctx.command)
 
 
-EXTENSIONS = {}
+EXTENSIONS: dict[str, "ExtMetadata"] = {}
