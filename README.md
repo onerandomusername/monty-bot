@@ -1,19 +1,24 @@
 # Monty Python
 
+- [Monty Python](#monty-python)
+  - [Primary features](#primary-features)
+  - [Running Locally](#running-locally)
+  - [Contact](#contact)
+
 Based off of multiple open source projects, Monty is a development tool for Discord servers. See [third party licensing](./LICENSE_THIRD_PARTY) for the original projects.
 
-### Primary features
-`/docs` View Python documentation from discord \
-`/pep` View PEPs directly within discord \
-`-eval` Evaluate Python code \
-`-black` Blacken Python code
+## Primary features
 
-### Additional features
-- Automatic GitHub issue linking
-- Inline Python Docs and Python Code evaluation
-- Automatic leaked Discord Webhook deletion
-- Missing python codebloc detection
-- PyPI commands to interface with packages on the Python Package Index
+- `/docs` View and search Python documentation and select libraries
+- `/pep` View PEPs directly within Discord
+- `/pypi` Search PyPI and view package information
+- `-eval` Evaluate Python code
+- `-black` Run black over python code
+
+Additionally, Monty features a plethora of GitHub related features, including the following:
+
+- Automatic GitHub issue linking, using the same syntax as GitHub: `org/repo#num`
+- Automatic GitHub code embedding, eg when providing a source link to a snippet on GitHub.
 
 Click [here](https://discord.com/oauth2/authorize?client_id=872576125384147005&scope=bot+applications.commands&permissions=395204488384) to invite the public instance of Monty to your Discord server.
 
