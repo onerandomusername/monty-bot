@@ -108,6 +108,7 @@ class DiscordRenderer(mistune.renderers.BaseRenderer):
 
     def __init__(self, repo: str = None):
         self._repo = (repo or "").rstrip("/")
+        self.images = []
 
     def text(self, text: str) -> str:
         """Replace GitHub links with their expanded versions."""
@@ -135,6 +136,7 @@ class DiscordRenderer(mistune.renderers.BaseRenderer):
 
     def image(self, src: str, alt: str = None, title: str = None) -> str:
         """Return a link to the provided image."""
+        self.images.append((src, alt, title))
         return "!" + self.link(src, text="image", title=alt)
 
     def emphasis(self, text: str) -> str:
