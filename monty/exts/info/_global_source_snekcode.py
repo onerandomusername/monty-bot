@@ -183,11 +183,14 @@ if __name__ == "__main__":
             print("This package isn't supported right now.")
             sys.exit(8)
         # I ideally want to use the database for this and run that locally by sending a pickled result.
-        if top_module_name not in ("arrow", "databases", "ormar", "typing_extensions"):
+        src_dir = ""
+        if top_module_name == "sqlalchemy":
+            version = f"rel_{version}".replace(".", "_")
+            src_dir = "lib/"
+        elif top_module_name not in ("arrow", "databases", "ormar", "typing_extensions"):
             version = f"v{version}"
-        if top_module_name in ("typing_extensions",):
-            filename = f"src/{filename}"
-        url += f"/blob/{version}/{filename}{lines_extension}"
+
+        url += f"/blob/{version}/{src_dir}{filename}{lines_extension}"
     # used to be able to slice code to ignore import side-effects
     print("#" * 80)
     print(url)
