@@ -1259,7 +1259,11 @@ class GithubInfo(commands.Cog, name="GitHub Information", slash_command_attrs={"
         if isinstance(message, disnake.ApplicationCommandInteraction):
             await message.send(embed=embed, components=components)
         else:
-            response = await message.reply(embed=embed, components=components)
+            response = await message.reply(
+                embed=embed,
+                components=components,
+                allowed_mentions=disnake.AllowedMentions(replied_user=False),
+            )
             self.autolink_cache.set(message.id, (response, issues))
 
     @commands.Cog.listener("on_message_edit")
