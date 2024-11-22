@@ -186,6 +186,10 @@ class FoundIssue:
     def __hash__(self) -> int:
         return hash((self.organisation, self.repository, self.number))
 
+    def has_comment_fragment(self) -> bool:
+        """Returns true if `url_fragment` is set and doesn't point to a top-level resource."""
+        return bool(self.url_fragment and not self.url_fragment.startswith(("issue-", "discussion-")))
+
 
 @dataclass
 class FetchError:
@@ -962,30 +966,6 @@ class GithubInfo(commands.Cog, name="GitHub Information", slash_command_attrs={"
         for issue in issues:
             frag = issue.url_fragment
             assert frag
-
-            # figure out which endpoint we want to use
-            if frag.startswith("issue-"):
-                # in a perfect world we'd show the full issue display, and fetch the issue endpoint
-                # while we don't live in a perfect world we're going to make the necessary convoluted code
-                # to actually loop back anyways
-
-                # github, why is this fragment even a thing?
-                fetched_issue = await self.fetch_issues(
-                    int(issue.number),
-                    issue.repository,
-                    issue.organisation,  # type: ignore
-                )
-                if isinstance(fetched_issue, FetchError):
-                    continue
-                comments.append(self.format_embed_expanded_issue(fetched_issue))
-                components.append(
-                    disnake.ui.Button(
-                        url=fetched_issue.raw_json["html_url"],  # type: ignore
-                        label="View comment",
-                    )
-                )
-                continue
-
             expected_url = issue.user_url
             assert expected_url
 
@@ -1182,7 +1162,7 @@ class GithubInfo(commands.Cog, name="GitHub Information", slash_command_attrs={"
         if not issues:
             return
 
-        if issue_comments := list(filter(lambda issue: issue.url_fragment, issues)):
+        if issue_comments := list(filter(lambda issue: issue.has_comment_fragment(), issues)):
             # if there are issue comments found, we do not want to expand the entire issue
             # we also only want to expand the issue if the feature is enabled
             # AND both options of the guild configuration are enabled
