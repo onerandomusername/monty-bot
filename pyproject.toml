@@ -26,7 +26,7 @@ markdownify = "==0.11.6"
 mistune = "^2.0.4"
 msgpack = "^1.1.0"
 redis = { version = "^5.2.0", extras = ['hiredis'] }
-Pillow = "^11.0"
+Pillow = "^11.1"
 psutil = "^5.9.8"
 python-dateutil = "^2.9.0"
 rapidfuzz = "^3.10.1"
