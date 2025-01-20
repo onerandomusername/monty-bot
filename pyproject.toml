@@ -18,7 +18,7 @@ cachingutils = { git = "https://github.com/onerandomusername/cachingutils.git", 
 colorama = { version = "~=0.4.5", markers = "sys_platform == 'win32'" }
 coloredlogs = "~=15.0"
 disnake = { version = '~=2.9.3' }
-orjson = "^3.10.11"
+orjson = "^3.10.15"
 fakeredis = "^2.26.1"
 gql = "^3.5.0"
 lxml = "^5.3.0"
