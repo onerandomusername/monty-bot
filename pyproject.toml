@@ -33,7 +33,7 @@ rapidfuzz = "^3.10.1"
 sentry-sdk = "^2.18.0"
 statsd = "^3.3.0"
 # database dependencies
-alembic = "^1.14.0"
+alembic = "^1.14.1"
 asyncpg = "^0.30.0"
 SQLAlchemy = { version = "~=2.0.36", extras = ['asyncio'] }
 watchfiles = "^0.24.0"
