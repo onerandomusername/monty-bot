@@ -45,7 +45,7 @@ dev = ['fakeredis', 'watchfiles']
 [tool.poetry.dev-dependencies]
 black = "^24.10.0"
 ruff = "==0.7.4"
-isort = "^5.13.2"
+isort = "^6.0.0"
 pre-commit = "^4.0.1"
 taskipy = "~=1.14.0"
 python-dotenv = "^1.0.1"
