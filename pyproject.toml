@@ -43,7 +43,7 @@ fakeredis = ['fakeredis']
 dev = ['fakeredis', 'watchfiles']
 
 [tool.poetry.dev-dependencies]
-black = "^24.10.0"
+black = "^25.1.0"
 ruff = "==0.7.4"
 isort = "^5.13.2"
 pre-commit = "^4.0.1"
