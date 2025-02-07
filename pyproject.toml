@@ -35,7 +35,7 @@ statsd = "^3.3.0"
 # database dependencies
 alembic = "^1.14.0"
 asyncpg = "^0.30.0"
-SQLAlchemy = { version = "~=2.0.36", extras = ['asyncio'] }
+SQLAlchemy = { version = "~=2.0.38", extras = ['asyncio'] }
 watchfiles = "^0.24.0"
 
 [tool.poetry.extras]
